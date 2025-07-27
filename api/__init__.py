@@ -1,17 +1,17 @@
+import os
 from flask import Flask, jsonify
-from flask_cors import CORS
-from flask_migrate import Migrate
 from flask_restx import Api
-from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
+
+
 from api.models.User import User
 from api.models.Bookmark import Bookmark
 from api.models.RevokedToken import RevokedToken
-import os
+from api.db import db
+from api.resources.bookmarks import bookmarks_ns
+from api.resources.users import users_ns
+from api.extension import cors, migrate, jwt
 
-from .db import db
-import api.resources.bookmarks as bookmarks_ns
-import api.resources.users as users_ns
 
 # Load environment variables
 load_dotenv()
@@ -29,11 +29,11 @@ def create_app():
     app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
 
     # Extensions
-    CORS(app)  # add cors
+    cors.init_app(app)  # add cors
     db.init_app(app)  # initialize db
-    Migrate(app, db)  # initialize db migrate
+    migrate.init_app(app, db)  # initialize db migrate
     api = Api(app)  # initialize api
-    jwt = JWTManager(app)  # initialize jwt
+    jwt.init_app(app)  # initialize jwt
 
     # check is token in blocklist
     @jwt.token_in_blocklist_loader
